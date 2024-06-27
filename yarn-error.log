@@ -1,0 +1,55 @@
+Arguments: 
+  G:\nodejs18.18\node.exe C:\Users\Administrator\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js install --production --ignore-optional --silent
+
+PATH: 
+  C:\Users\Administrator\bin;G:\Git\mingw64\bin;G:\Git\usr\local\bin;G:\Git\usr\bin;G:\Git\usr\bin;G:\Git\mingw64\bin;G:\Git\usr\bin;C:\Users\Administrator\bin;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\bin;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\libnvvp;D:\learning\software\Gurobi10.0\win64\bin;D:\software\VMWare\bin;G:\language\Anaconda3;G:\language\Anaconda3\Library\mingw-w64\bin;G:\language\Anaconda3\Library\usr\bin;G:\language\Anaconda3\Library\bin;G:\language\Anaconda3\Scripts;C:\Program Files (x86)\Intel\iCLS Client;C:\Program Files\Intel\iCLS Client;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files\Intel\Intel(R) Management Engine Components\IPT;G:\apache-maven-3.5.4\bin;G:\language\java\bin;G:\mysql-5.7.28-winx64\bin;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;G:\Git\cmd;G:\MongoDB\bin;D:\learning\softw;C:\Program Files\dotnet;D:\learning\software\Matlab2022b\runtime\win64;D:\learning\software\Matlab2022b\bin;C:\Program Files\NVIDIA Corporation\Nsight Compute 2020.1.0;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\lib\x64;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\bin;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.0\libnvvp;D:\learning\software\Mosek\10.0\tools\platform\win64x86\bin;G:\nodejs18.18;G:\language\go1.21.3\go\bin;D:\software\Xshell7;D:\software\Xftp7;C:\Users\Administrator\AppData\Local\Microsoft\WindowsApps;D:\learning\software\Microsoft VS Code\bin;D:\learning\software\PyCharm 2021.3.2\bin;D:\software\Fiddler;D:\software\gaming\QQGameTempest\Hall.57938;D:\learning\software\idea\IntelliJ IDEA 2023.1.2\bin;C:\Users\Administrator\AppData\Roaming\npm;D:\software\cpolar;G:\Git\usr\bin\vendor_perl;G:\Git\usr\bin\core_perl
+
+Yarn version: 
+  1.22.19
+
+Node version: 
+  18.18.0
+
+Platform: 
+  win32 x64
+
+Trace: 
+  Error: certificate has expired
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1600:34)
+      at TLSSocket.emit (node:events:517:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1017:8)
+      at ssl.onhandshakedone (node:_tls_wrap:803:12)
+
+npm manifest: 
+  {
+    "name": "hexo-site",
+    "version": "0.0.0",
+    "private": true,
+    "scripts": {
+      "build": "hexo generate",
+      "clean": "hexo clean",
+      "deploy": "hexo deploy",
+      "server": "hexo server"
+    },
+    "hexo": {
+      "version": ""
+    },
+    "dependencies": {
+      "hexo": "^7.0.0",
+      "hexo-generator-archive": "^2.0.0",
+      "hexo-generator-category": "^2.0.0",
+      "hexo-generator-index": "^3.0.0",
+      "hexo-generator-tag": "^2.0.0",
+      "hexo-renderer-ejs": "^2.0.0",
+      "hexo-renderer-marked": "^6.0.0",
+      "hexo-renderer-stylus": "^3.0.0",
+      "hexo-server": "^3.0.0",
+      "hexo-theme-landscape": "^1.0.0"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
