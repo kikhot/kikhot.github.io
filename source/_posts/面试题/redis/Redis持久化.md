@@ -3,20 +3,21 @@ title: Redis持久化
 date: 2024-10-12 23:12:00
 tags:
     - 面试题
+    - redis
 categories:
     - 面试题
     - redis
 ---
 
-![](../../../images/Java/面试题/redis/16.png)
+![](../../../images/面试题/redis/16.png)
 
 RDB 全称 Redis Database Backup file （Redis数据备份文件），也被叫做Redis数据快照。简单来说就是把内存中的所有数据都记录到磁盘中。当Redis实例故障重启后，从磁盘读取快照文件，恢复数据。
 
-![](../../../images/Java/面试题/redis/17.png)
+![](../../../images/面试题/redis/17.png)
 
 Redis 内部有触发 RDB 的机制，可以在 redis.conf 文件中找到，格式如下：
 
-![](../../../images/Java/面试题/redis/18.png)
+![](../../../images/面试题/redis/18.png)
 
 ## <font style="color:rgb(255, 0, 1);">RDB的执行原理是什么？</font>
 bgsave 开始时会 fork 主进程得到子进程，子进程<font style="color:rgb(255, 0, 1);">共享</font>主进程的内存数据。完成 fork 后读取内存数据并写入 RDB 文件。
@@ -24,12 +25,12 @@ fork 采用的是 copy-on-write 技术：
 - 当主进程执行读操作时，访问共享内存；
 - 当主进程执行写操作时，则会拷贝一份数据，执行写操作。
 
-![](../../../images/Java/面试题/redis/19.png)
+![](../../../images/面试题/redis/19.png)
 
 ## <font style="color:rgb(243, 50, 50);">AOF</font>
 AOF全称为Append Only File（追加文件）。Redis处理的每一个写命令都会记录在AOF文件，可以看做是命令日志文件。
 
-![](../../../images/Java/面试题/redis/20.png)
+![](../../../images/面试题/redis/20.png)
 
 AOF 默认是关闭的，需要修改 `redis.conf` 配置文件来开启 AOF：
 
@@ -51,11 +52,11 @@ appendfsync everysec
 appendfsync no
 ```
 
-![](../../../images/Java/面试题/redis/21.png)
+![](../../../images/面试题/redis/21.png)
 
 因为是记录命令，AOF 文件会比 RDB 文件大的多。而且 AOF 会记录对同一个 key 的多次写操作，但只有最后一次写操作才有意义。通过执行<font style="color:rgb(255, 0, 1);"> bgrewriteaof </font>命令，可以让 AOF 文件执行重写功能，用最少的命令达到相同效果。
 
-![](../../../images/Java/面试题/redis/22.png)
+![](../../../images/面试题/redis/22.png)
 
 Redis也会在出发阈值时自动去重写 AOF 文件。阈值也可以在 `redis.conf` 中配置：
 
@@ -67,7 +68,7 @@ auto-aof-rewrite-min-size 64mb
 ## <font style="color:rgb(255, 0, 1);">RDB 与 AOF 对比</font>
 <font style="color:rgb(0, 0, 0);">RDB 和 AOF 各有自己的优缺点，如果对数据安全性要求较高，在实际开发中往往会</font><font style="color:rgb(255, 0, 1);">结合</font>两者来使用。
 
-![](../../../images/Java/面试题/redis/23.png)
+![](../../../images/面试题/redis/23.png)
 
 ## 面试场景
 > **面试官:** redis 做为缓存，数据的持久化是怎么做的?
