@@ -66,7 +66,7 @@ auto-aof-rewrite-percentage 100
 auto-aof-rewrite-min-size 64mb
 
 ## <font style="color:rgb(255, 0, 1);">RDB 与 AOF 对比</font>
-<font style="color:rgb(0, 0, 0);">RDB 和 AOF 各有自己的优缺点，如果对数据安全性要求较高，在实际开发中往往会</font><font style="color:rgb(255, 0, 1);">结合</font>两者来使用。
+RDB 和 AOF 各有自己的优缺点，如果对数据安全性要求较高，在实际开发中往往会<font style="color:rgb(255, 0, 1);">结合</font>两者来使用。
 
 ![](../../../images/面试题/redis/23.png)
 
