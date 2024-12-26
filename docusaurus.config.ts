@@ -5,20 +5,22 @@ import type * as Preset from '@docusaurus/preset-classic';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
+  title: 'Quixote Blog',
+  tagline: 'show my blog',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
+  url: 'https://kikhot.github.io/',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  organizationName: 'kikhot', // Usually your GitHub org/user name.
+  projectName: 'kikhot.github.io', // Usually your repo name.
+  trailingSlash: false,
+  deploymentBranch: 'master', // 部署分支，该分支会发布到 GitHub Page
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
