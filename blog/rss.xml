@@ -4,10 +4,19 @@
         <title>Quixote Blog Blog</title>
         <link>https://kikhot.github.io/blog</link>
         <description>Quixote Blog Blog</description>
-        <lastBuildDate>Thu, 26 Aug 2021 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Thu, 26 Dec 2024 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>en</language>
+        <item>
+            <title><![CDATA[First Blog Post]]></title>
+            <link>https://kikhot.github.io/blog/first-blog-post</link>
+            <guid>https://kikhot.github.io/blog/first-blog-post</guid>
+            <pubDate>Thu, 26 Dec 2024 00:00:00 GMT</pubDate>
+            <description><![CDATA[这是 Quixote 的第一个博客，测试一下。]]></description>
+            <content:encoded><![CDATA[<p>这是 Quixote 的第一个博客，测试一下。</p>]]></content:encoded>
+            <category>Docusaurus</category>
+        </item>
         <item>
             <title><![CDATA[Welcome]]></title>
             <link>https://kikhot.github.io/blog/welcome</link>
@@ -78,9 +87,7 @@
             <guid>https://kikhot.github.io/blog/first-blog-post</guid>
             <pubDate>Tue, 28 May 2019 00:00:00 GMT</pubDate>
             <description><![CDATA[Lorem ipsum dolor sit amet...]]></description>
-            <content:encoded><![CDATA[<p>Lorem ipsum dolor sit amet...</p>
-<p>...consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>test</p>]]></content:encoded>
+            <content:encoded><![CDATA[<p>这是 Quixote 的第一个博客，测试一下。</p>]]></content:encoded>
             <category>Hola</category>
             <category>Docusaurus</category>
         </item>

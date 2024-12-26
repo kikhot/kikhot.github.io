@@ -2,11 +2,24 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://kikhot.github.io/blog</id>
     <title>Quixote Blog Blog</title>
-    <updated>2021-08-26T00:00:00.000Z</updated>
+    <updated>2024-12-26T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://kikhot.github.io/blog"/>
     <subtitle>Quixote Blog Blog</subtitle>
     <icon>https://kikhot.github.io/img/favicon.ico</icon>
+    <entry>
+        <title type="html"><![CDATA[First Blog Post]]></title>
+        <id>https://kikhot.github.io/blog/first-blog-post</id>
+        <link href="https://kikhot.github.io/blog/first-blog-post"/>
+        <updated>2024-12-26T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[这是 Quixote 的第一个博客，测试一下。]]></summary>
+        <content type="html"><![CDATA[<p>这是 Quixote 的第一个博客，测试一下。</p>]]></content>
+        <author>
+            <name>Quixote</name>
+            <uri>https://github.com/kikhot</uri>
+        </author>
+        <category label="Docusaurus" term="Docusaurus"/>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Welcome]]></title>
         <id>https://kikhot.github.io/blog/welcome</id>
@@ -93,9 +106,7 @@
         <link href="https://kikhot.github.io/blog/first-blog-post"/>
         <updated>2019-05-28T00:00:00.000Z</updated>
         <summary type="html"><![CDATA[Lorem ipsum dolor sit amet...]]></summary>
-        <content type="html"><![CDATA[<p>Lorem ipsum dolor sit amet...</p>
-<p>...consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>test</p>]]></content>
+        <content type="html"><![CDATA[<p>这是 Quixote 的第一个博客，测试一下。</p>]]></content>
         <author>
             <name>Sébastien Lorber</name>
             <uri>https://sebastienlorber.com</uri>
