@@ -21,3 +21,12 @@ slorber:
     linkedin: sebastienlorber
     github: slorber
     newsletter: https://thisweekinreact.com
+
+Quixote:
+  name: Quixote
+  title: Front End Engineer @ Facebook
+  url: https://github.com/kikhot
+  page: true
+  socials:
+    x: Quixote
+    github: Quixote
