@@ -38,6 +38,7 @@ const config: Config = {
       'classic',
       {
         docs: {
+          // breadcrumbs: true,           // docs 上面的面包屑是否显示（默认为true）
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
@@ -69,6 +70,11 @@ const config: Config = {
   themeConfig: {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
+    docs: {
+      sidebar: {
+        hideable: true,   // docs 左侧的侧边栏设置为可隐藏
+      }
+    },
     navbar: {
       title: 'My Site',
       logo: {
