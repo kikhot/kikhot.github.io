@@ -92,7 +92,7 @@ const config: Config = {
           type: 'docSidebar',
           sidebarId: 'InterviewSidebar',
           position: 'left',
-          label: 'Interview',
+          label: '面试题',
         },
         {to: '/blog', label: 'Blog', position: 'left'},
         {
