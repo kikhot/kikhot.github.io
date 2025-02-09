@@ -19,7 +19,7 @@ sidebar_position: 12
 
 ![](./image/image_959b877d-2747-4f49-9ba0-73151f5a2494.png)
 
-## <font style="color:rgb(243, 50, 50);">阻塞IO</font>
+## 阻塞IO
 顾名思义，阻塞 IO 就是两个阶段都必须阻塞等待：
 
 **阶段一：**
