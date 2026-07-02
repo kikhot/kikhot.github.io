@@ -1,12 +1,143 @@
 <?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xsl" href="atom.xsl"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://kikhot.github.io/blog</id>
-    <title>Quixote Blog Blog</title>
-    <updated>2024-12-26T00:00:00.000Z</updated>
+    <title>Quixote Knowledge Base Blog</title>
+    <updated>2026-07-02T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://kikhot.github.io/blog"/>
-    <subtitle>Quixote Blog Blog</subtitle>
+    <subtitle>Quixote Knowledge Base Blog</subtitle>
     <icon>https://kikhot.github.io/img/favicon.ico</icon>
+    <entry>
+        <title type="html"><![CDATA[Redis Zset 有序集合：从使用场景到底层结构]]></title>
+        <id>https://kikhot.github.io/blog/redis-zset-notes</id>
+        <link href="https://kikhot.github.io/blog/redis-zset-notes"/>
+        <updated>2026-07-02T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Redis 的 Zset（Sorted Set，有序集合）是一个很适合做“排序 + 唯一成员”的数据结构。它看起来像 Set，但每个成员都会额外绑定一个 score，Redis 会按 score 维护顺序。]]></summary>
+        <content type="html"><![CDATA[<p>Redis 的 Zset（Sorted Set，有序集合）是一个很适合做“排序 + 唯一成员”的数据结构。它看起来像 Set，但每个成员都会额外绑定一个 <code>score</code>，Redis 会按 <code>score</code> 维护顺序。</p>
+<p>这篇笔记参考了腾讯云开发者社区文章 <a href="https://cloud.tencent.com/developer/article/2343216" target="_blank" rel="noopener noreferrer">《Redis数据结构：Zset类型全面解析》</a>，并按我自己的理解重新整理，方便后续复习和查阅。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="zset-解决什么问题">Zset 解决什么问题<a href="https://kikhot.github.io/blog/redis-zset-notes#zset-%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98" class="hash-link" aria-label="Zset 解决什么问题的直接链接" title="Zset 解决什么问题的直接链接">​</a></h2>
+<p>Zset 适合这种数据模型：</p>
+<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-text codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain">member -&gt; score</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="复制代码到剪贴板" title="复制" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg viewBox="0 0 24 24" class="copyButtonIcon_y97N"><path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg viewBox="0 0 24 24" class="copyButtonSuccessIcon_LjdS"><path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div>
+<p>其中：</p>
+<ul>
+<li><code>member</code> 是唯一的，同一个 Zset 中不会出现重复成员。</li>
+<li><code>score</code> 是排序权重，Redis 会根据它维护有序结果。</li>
+<li>当成员的 <code>score</code> 更新后，排序位置也会随之变化。</li>
+</ul>
+<p>如果只需要去重，用 Set 就够了；如果既要去重，又要根据分数、时间、优先级排序，Zset 就很顺手。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="常见应用场景">常见应用场景<a href="https://kikhot.github.io/blog/redis-zset-notes#%E5%B8%B8%E8%A7%81%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF" class="hash-link" aria-label="常见应用场景的直接链接" title="常见应用场景的直接链接">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="排行榜">排行榜<a href="https://kikhot.github.io/blog/redis-zset-notes#%E6%8E%92%E8%A1%8C%E6%A6%9C" class="hash-link" aria-label="排行榜的直接链接" title="排行榜的直接链接">​</a></h3>
+<p>把用户 ID 作为 <code>member</code>，积分、分数、热度作为 <code>score</code>。</p>
+<p>常见查询包括：</p>
+<ul>
+<li>查询 Top N 用户。</li>
+<li>查询某个用户排名。</li>
+<li>查询某个分数区间内的用户。</li>
+<li>更新用户分数并自动调整排名。</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="时间线">时间线<a href="https://kikhot.github.io/blog/redis-zset-notes#%E6%97%B6%E9%97%B4%E7%BA%BF" class="hash-link" aria-label="时间线的直接链接" title="时间线的直接链接">​</a></h3>
+<p>把消息 ID、文章 ID 或动态 ID 作为 <code>member</code>，发布时间戳作为 <code>score</code>。</p>
+<p>这样可以按时间顺序拉取内容，例如：</p>
+<ul>
+<li>最新动态。</li>
+<li>某个时间段内的内容。</li>
+<li>某个用户之后的增量内容。</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="延时队列">延时队列<a href="https://kikhot.github.io/blog/redis-zset-notes#%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97" class="hash-link" aria-label="延时队列的直接链接" title="延时队列的直接链接">​</a></h3>
+<p>把任务 ID 作为 <code>member</code>，任务应该执行的时间戳作为 <code>score</code>。</p>
+<p>消费者定期取出 <code>score &lt;= 当前时间</code> 的任务并执行。这个方案简单直观，但要注意并发消费、重复执行和任务失败重试问题。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="优先级队列">优先级队列<a href="https://kikhot.github.io/blog/redis-zset-notes#%E4%BC%98%E5%85%88%E7%BA%A7%E9%98%9F%E5%88%97" class="hash-link" aria-label="优先级队列的直接链接" title="优先级队列的直接链接">​</a></h3>
+<p>把任务作为 <code>member</code>，优先级作为 <code>score</code>。分数越高或越低优先执行，取决于业务约定。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="底层结构怎么理解">底层结构怎么理解<a href="https://kikhot.github.io/blog/redis-zset-notes#%E5%BA%95%E5%B1%82%E7%BB%93%E6%9E%84%E6%80%8E%E4%B9%88%E7%90%86%E8%A7%A3" class="hash-link" aria-label="底层结构怎么理解的直接链接" title="底层结构怎么理解的直接链接">​</a></h2>
+<p>Zset 的核心诉求是：</p>
+<ol>
+<li>能快速按成员查找分数。</li>
+<li>能按分数保持有序。</li>
+<li>能支持范围查询和排名查询。</li>
+</ol>
+<p>因此它不是单纯用一个数组或链表解决，而是根据数据规模和编码策略选择更合适的底层结构。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="小数据量紧凑编码">小数据量：紧凑编码<a href="https://kikhot.github.io/blog/redis-zset-notes#%E5%B0%8F%E6%95%B0%E6%8D%AE%E9%87%8F%E7%B4%A7%E5%87%91%E7%BC%96%E7%A0%81" class="hash-link" aria-label="小数据量：紧凑编码的直接链接" title="小数据量：紧凑编码的直接链接">​</a></h2>
+<p>在数据量较小、成员长度较短时，Redis 会倾向使用更节省内存的紧凑结构。</p>
+<p>这类结构的特点是：</p>
+<ul>
+<li>内存占用低。</li>
+<li>数据连续存储，对小集合很友好。</li>
+<li>插入或更新时可能需要移动较多数据。</li>
+</ul>
+<p>所以它适合“小而短”的 Zset，不适合频繁修改的大集合。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="大数据量跳表">大数据量：跳表<a href="https://kikhot.github.io/blog/redis-zset-notes#%E5%A4%A7%E6%95%B0%E6%8D%AE%E9%87%8F%E8%B7%B3%E8%A1%A8" class="hash-link" aria-label="大数据量：跳表的直接链接" title="大数据量：跳表的直接链接">​</a></h2>
+<p>当 Zset 规模变大后，Redis 会使用跳表等结构来维护有序性。</p>
+<p>跳表可以理解为“带多级索引的有序链表”：</p>
+<ul>
+<li>最底层保存完整有序链表。</li>
+<li>上层保存稀疏索引。</li>
+<li>查找时从高层索引开始跳跃，逐层向下缩小范围。</li>
+</ul>
+<p>它的优势是插入、删除、查找都能保持比较稳定的效率，适合内存数据库中频繁更新的有序集合。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="为什么-redis-更适合跳表而不是-b-树">为什么 Redis 更适合跳表，而不是 B+ 树<a href="https://kikhot.github.io/blog/redis-zset-notes#%E4%B8%BA%E4%BB%80%E4%B9%88-redis-%E6%9B%B4%E9%80%82%E5%90%88%E8%B7%B3%E8%A1%A8%E8%80%8C%E4%B8%8D%E6%98%AF-b-%E6%A0%91" class="hash-link" aria-label="为什么 Redis 更适合跳表，而不是 B+ 树的直接链接" title="为什么 Redis 更适合跳表，而不是 B+ 树的直接链接">​</a></h2>
+<p>B+ 树更常出现在数据库索引里，因为它非常适合磁盘页读写和范围查询。</p>
+<p>Redis 的 Zset 主要运行在内存里，关注点不一样：</p>
+<ul>
+<li>内存访问没有磁盘 I/O 页读取的瓶颈。</li>
+<li>跳表实现相对简单，插入删除不需要复杂的节点分裂与合并。</li>
+<li>Zset 经常面对实时更新排名的场景，跳表比较适合这种写入模型。</li>
+</ul>
+<p>所以不能简单说跳表比 B+ 树更好，而是它们适合的系统约束不同。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="常用命令速记">常用命令速记<a href="https://kikhot.github.io/blog/redis-zset-notes#%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E9%80%9F%E8%AE%B0" class="hash-link" aria-label="常用命令速记的直接链接" title="常用命令速记的直接链接">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="添加或更新成员">添加或更新成员<a href="https://kikhot.github.io/blog/redis-zset-notes#%E6%B7%BB%E5%8A%A0%E6%88%96%E6%9B%B4%E6%96%B0%E6%88%90%E5%91%98" class="hash-link" aria-label="添加或更新成员的直接链接" title="添加或更新成员的直接链接">​</a></h3>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain">ZADD ranking 100 user:1</span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">ZADD ranking 80 user:2 120 user:3</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="复制代码到剪贴板" title="复制" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg viewBox="0 0 24 24" class="copyButtonIcon_y97N"><path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg viewBox="0 0 24 24" class="copyButtonSuccessIcon_LjdS"><path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div>
+<p>如果成员已存在，<code>ZADD</code> 会更新它的 <code>score</code>。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="查询成员分数">查询成员分数<a href="https://kikhot.github.io/blog/redis-zset-notes#%E6%9F%A5%E8%AF%A2%E6%88%90%E5%91%98%E5%88%86%E6%95%B0" class="hash-link" aria-label="查询成员分数的直接链接" title="查询成员分数的直接链接">​</a></h3>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain">ZSCORE ranking user:1</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="复制代码到剪贴板" title="复制" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg viewBox="0 0 24 24" class="copyButtonIcon_y97N"><path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg viewBox="0 0 24 24" class="copyButtonSuccessIcon_LjdS"><path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div>
+<p>返回指定成员的分数。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="查询排名">查询排名<a href="https://kikhot.github.io/blog/redis-zset-notes#%E6%9F%A5%E8%AF%A2%E6%8E%92%E5%90%8D" class="hash-link" aria-label="查询排名的直接链接" title="查询排名的直接链接">​</a></h3>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain">ZRANK ranking user:1</span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">ZREVRANK ranking user:1</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="复制代码到剪贴板" title="复制" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg viewBox="0 0 24 24" class="copyButtonIcon_y97N"><path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg viewBox="0 0 24 24" class="copyButtonSuccessIcon_LjdS"><path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div>
+<ul>
+<li><code>ZRANK</code>：按分数从小到大排名。</li>
+<li><code>ZREVRANK</code>：按分数从大到小排名。</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="查询范围">查询范围<a href="https://kikhot.github.io/blog/redis-zset-notes#%E6%9F%A5%E8%AF%A2%E8%8C%83%E5%9B%B4" class="hash-link" aria-label="查询范围的直接链接" title="查询范围的直接链接">​</a></h3>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain">ZRANGE ranking 0 9 WITHSCORES</span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">ZREVRANGE ranking 0 9 WITHSCORES</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="复制代码到剪贴板" title="复制" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg viewBox="0 0 24 24" class="copyButtonIcon_y97N"><path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg viewBox="0 0 24 24" class="copyButtonSuccessIcon_LjdS"><path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div>
+<p>适合做排行榜 Top N。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="删除成员">删除成员<a href="https://kikhot.github.io/blog/redis-zset-notes#%E5%88%A0%E9%99%A4%E6%88%90%E5%91%98" class="hash-link" aria-label="删除成员的直接链接" title="删除成员的直接链接">​</a></h3>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain">ZREM ranking user:2</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="复制代码到剪贴板" title="复制" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg viewBox="0 0 24 24" class="copyButtonIcon_y97N"><path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg viewBox="0 0 24 24" class="copyButtonSuccessIcon_LjdS"><path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="按分数统计">按分数统计<a href="https://kikhot.github.io/blog/redis-zset-notes#%E6%8C%89%E5%88%86%E6%95%B0%E7%BB%9F%E8%AE%A1" class="hash-link" aria-label="按分数统计的直接链接" title="按分数统计的直接链接">​</a></h3>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain">ZCOUNT ranking 80 120</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="复制代码到剪贴板" title="复制" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg viewBox="0 0 24 24" class="copyButtonIcon_y97N"><path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg viewBox="0 0 24 24" class="copyButtonSuccessIcon_LjdS"><path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div>
+<p>统计指定分数区间内的成员数量。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="使用时的注意点">使用时的注意点<a href="https://kikhot.github.io/blog/redis-zset-notes#%E4%BD%BF%E7%94%A8%E6%97%B6%E7%9A%84%E6%B3%A8%E6%84%8F%E7%82%B9" class="hash-link" aria-label="使用时的注意点的直接链接" title="使用时的注意点的直接链接">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="score-要有清晰含义">score 要有清晰含义<a href="https://kikhot.github.io/blog/redis-zset-notes#score-%E8%A6%81%E6%9C%89%E6%B8%85%E6%99%B0%E5%90%AB%E4%B9%89" class="hash-link" aria-label="score 要有清晰含义的直接链接" title="score 要有清晰含义的直接链接">​</a></h3>
+<p><code>score</code> 可以表示积分、时间戳、优先级、热度，但最好在业务里保持单一含义。不要让一个 Zset 同时承担多种排序规则。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="member-不要太大">member 不要太大<a href="https://kikhot.github.io/blog/redis-zset-notes#member-%E4%B8%8D%E8%A6%81%E5%A4%AA%E5%A4%A7" class="hash-link" aria-label="member 不要太大的直接链接" title="member 不要太大的直接链接">​</a></h3>
+<p>Zset 的成员通常建议存 ID，而不是完整 JSON。详细内容放到 Hash、String 或数据库里，通过 ID 再查询。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="延时队列要处理并发">延时队列要处理并发<a href="https://kikhot.github.io/blog/redis-zset-notes#%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97%E8%A6%81%E5%A4%84%E7%90%86%E5%B9%B6%E5%8F%91" class="hash-link" aria-label="延时队列要处理并发的直接链接" title="延时队列要处理并发的直接链接">​</a></h3>
+<p>如果多个消费者同时扫描同一个 Zset，需要用原子操作、Lua 脚本或分布式锁避免重复消费。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="排行榜要考虑冷热数据">排行榜要考虑冷热数据<a href="https://kikhot.github.io/blog/redis-zset-notes#%E6%8E%92%E8%A1%8C%E6%A6%9C%E8%A6%81%E8%80%83%E8%99%91%E5%86%B7%E7%83%AD%E6%95%B0%E6%8D%AE" class="hash-link" aria-label="排行榜要考虑冷热数据的直接链接" title="排行榜要考虑冷热数据的直接链接">​</a></h3>
+<p>如果排行榜数据非常大，可以考虑按时间窗口拆分，例如：</p>
+<ul>
+<li><code>ranking:daily:2026-07-02</code></li>
+<li><code>ranking:weekly:2026-W27</code></li>
+<li><code>ranking:global</code></li>
+</ul>
+<p>这样查询和清理都会更容易。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="我的理解">我的理解<a href="https://kikhot.github.io/blog/redis-zset-notes#%E6%88%91%E7%9A%84%E7%90%86%E8%A7%A3" class="hash-link" aria-label="我的理解的直接链接" title="我的理解的直接链接">​</a></h2>
+<p>Zset 最值得记住的一句话是：</p>
+<blockquote>
+<p>它是“唯一成员 + 可更新权重 + 有序访问”的组合。</p>
+</blockquote>
+<p>当需求里同时出现“排名、范围、时间线、优先级、延迟执行”这些关键词时，就应该先想想 Zset 是否合适。</p>
+<p>不过 Zset 不是万能队列，也不是复杂搜索引擎。它适合解决清晰的排序问题；如果排序规则很多、过滤条件复杂，可能需要结合数据库、搜索引擎或专门的任务队列一起设计。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="参考">参考<a href="https://kikhot.github.io/blog/redis-zset-notes#%E5%8F%82%E8%80%83" class="hash-link" aria-label="参考的直接链接" title="参考的直接链接">​</a></h2>
+<ul>
+<li>腾讯云开发者社区：<a href="https://cloud.tencent.com/developer/article/2343216" target="_blank" rel="noopener noreferrer">Redis数据结构：Zset类型全面解析</a></li>
+</ul>]]></content>
+        <author>
+            <name>Quixote</name>
+            <uri>https://github.com/kikhot</uri>
+        </author>
+        <category label="Redis" term="Redis"/>
+        <category label="Data Structure" term="Data Structure"/>
+        <category label="Backend" term="Backend"/>
+    </entry>
     <entry>
         <title type="html"><![CDATA[First Blog Post]]></title>
         <id>https://kikhot.github.io/blog/first-blog-post</id>
@@ -18,104 +149,6 @@
             <name>Quixote</name>
             <uri>https://github.com/kikhot</uri>
         </author>
-        <category label="Docusaurus" term="Docusaurus"/>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Welcome]]></title>
-        <id>https://kikhot.github.io/blog/welcome</id>
-        <link href="https://kikhot.github.io/blog/welcome"/>
-        <updated>2021-08-26T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[Docusaurus blogging features are powered by the blog plugin.]]></summary>
-        <content type="html"><![CDATA[<p><a href="https://docusaurus.io/docs/blog" target="_blank" rel="noopener noreferrer">Docusaurus blogging features</a> are powered by the <a href="https://docusaurus.io/docs/api/plugins/@docusaurus/plugin-content-blog" target="_blank" rel="noopener noreferrer">blog plugin</a>.</p>
-<p>Here are a few tips you might find useful.</p>
-<p>Simply add Markdown files (or folders) to the <code>blog</code> directory.</p>
-<p>Regular blog authors can be added to <code>authors.yml</code>.</p>
-<p>The blog post date can be extracted from filenames, such as:</p>
-<ul>
-<li><code>2019-05-30-welcome.md</code></li>
-<li><code>2019-05-30-welcome/index.md</code></li>
-</ul>
-<p>A blog post folder can be convenient to co-locate blog post images:</p>
-<p><img decoding="async" loading="lazy" alt="Docusaurus Plushie" src="https://kikhot.github.io/assets/images/docusaurus-plushie-banner-a60f7593abca1e3eef26a9afa244e4fb.jpeg" width="1500" height="500" class="img_ev3q"></p>
-<p>The blog supports tags as well!</p>
-<p><strong>And if you don't want a blog</strong>: just delete this directory, and use <code>blog: false</code> in your Docusaurus config.</p>]]></content>
-        <author>
-            <name>Sébastien Lorber</name>
-            <uri>https://sebastienlorber.com</uri>
-        </author>
-        <author>
-            <name>Yangshun Tay</name>
-            <uri>https://github.com/yangshun</uri>
-        </author>
-        <category label="Facebook" term="Facebook"/>
-        <category label="Hello" term="Hello"/>
-        <category label="Docusaurus" term="Docusaurus"/>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[MDX Blog Post]]></title>
-        <id>https://kikhot.github.io/blog/mdx-blog-post</id>
-        <link href="https://kikhot.github.io/blog/mdx-blog-post"/>
-        <updated>2021-08-01T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[Blog posts support Docusaurus Markdown features, such as MDX.]]></summary>
-        <content type="html"><![CDATA[<p>Blog posts support <a href="https://docusaurus.io/docs/markdown-features" target="_blank" rel="noopener noreferrer">Docusaurus Markdown features</a>, such as <a href="https://mdxjs.com/" target="_blank" rel="noopener noreferrer">MDX</a>.</p>
-<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 12 16"><path fill-rule="evenodd" d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"></path></svg></span>tip</div><div class="admonitionContent_BuS1"><p>Use the power of React to create interactive blog posts.</p></div></div>
-<!-- -->
-<p>For example, use JSX to create an interactive button:</p>
-<div class="language-js codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_biex"><pre tabindex="0" class="prism-code language-js codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token operator" style="color:#393A34">&lt;</span><span class="token plain">button onClick</span><span class="token operator" style="color:#393A34">=</span><span class="token punctuation" style="color:#393A34">{</span><span class="token punctuation" style="color:#393A34">(</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"> </span><span class="token arrow operator" style="color:#393A34">=&gt;</span><span class="token plain"> </span><span class="token function" style="color:#d73a49">alert</span><span class="token punctuation" style="color:#393A34">(</span><span class="token string" style="color:#e3116c">'button clicked!'</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">}</span><span class="token operator" style="color:#393A34">&gt;</span><span class="token maybe-class-name">Click</span><span class="token plain"> me</span><span class="token operator" style="color:#393A34">!</span><span class="token operator" style="color:#393A34">&lt;</span><span class="token operator" style="color:#393A34">/</span><span class="token plain">button</span><span class="token operator" style="color:#393A34">&gt;</span><br></span></code></pre><div class="buttonGroup__atx"><button type="button" aria-label="Copy code to clipboard" title="Copy" class="clean-btn"><span class="copyButtonIcons_eSgA" aria-hidden="true"><svg viewBox="0 0 24 24" class="copyButtonIcon_y97N"><path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg><svg viewBox="0 0 24 24" class="copyButtonSuccessIcon_LjdS"><path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg></span></button></div></div></div>
-<button>Click me!</button>]]></content>
-        <author>
-            <name>Sébastien Lorber</name>
-            <uri>https://sebastienlorber.com</uri>
-        </author>
-        <category label="Docusaurus" term="Docusaurus"/>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Long Blog Post]]></title>
-        <id>https://kikhot.github.io/blog/long-blog-post</id>
-        <link href="https://kikhot.github.io/blog/long-blog-post"/>
-        <updated>2019-05-29T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[This is the summary of a very long blog post,]]></summary>
-        <content type="html"><![CDATA[<p>This is the summary of a very long blog post,</p>
-<p>Use a <code>&lt;!--</code> <code>truncate</code> <code>--&gt;</code> comment to limit blog post size in the list view.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>]]></content>
-        <author>
-            <name>Yangshun Tay</name>
-            <uri>https://github.com/yangshun</uri>
-        </author>
-        <category label="Hello" term="Hello"/>
-        <category label="Docusaurus" term="Docusaurus"/>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[First Blog Post]]></title>
-        <id>https://kikhot.github.io/blog/first-blog-post</id>
-        <link href="https://kikhot.github.io/blog/first-blog-post"/>
-        <updated>2019-05-28T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[Lorem ipsum dolor sit amet...]]></summary>
-        <content type="html"><![CDATA[<p>这是 Quixote 的第一个博客，测试一下。</p>]]></content>
-        <author>
-            <name>Sébastien Lorber</name>
-            <uri>https://sebastienlorber.com</uri>
-        </author>
-        <author>
-            <name>Yangshun Tay</name>
-            <uri>https://github.com/yangshun</uri>
-        </author>
-        <category label="Hola" term="Hola"/>
         <category label="Docusaurus" term="Docusaurus"/>
     </entry>
 </feed>

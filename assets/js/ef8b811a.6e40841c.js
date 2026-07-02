@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkkikhot_blog=self.webpackChunkkikhot_blog||[]).push([[8947],{6600:t=>{t.exports=JSON.parse('{"authors":[{"name":"Quixote","title":"Knowledge builder","url":"https://github.com/kikhot","page":{"permalink":"/blog/authors/quixote"},"socials":{"github":"https://github.com/kikhot"},"key":"Quixote","count":2}]}')}}]);
