@@ -1,23 +1,308 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
-
-.heroBanner {
-  padding: 4rem 0;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+.main,
+.docsShell {
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 5rem;
 }
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
+.docsShell {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 760px) 260px;
+  gap: 4rem;
+  align-items: start;
+}
+
+.content {
+  min-width: 0;
+}
+
+.leftRail,
+.rightRail {
+  position: sticky;
+  top: 6.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: var(--claw-muted);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.84rem;
+}
+
+.rightRail {
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--claw-border);
+}
+
+.railTitle {
+  margin: 1.2rem 0 0.5rem;
+  color: var(--claw-text);
+  font-family: var(--ifm-font-family-base);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.railItem,
+.railItemActive {
+  display: block;
+  padding: 0.58rem 0.75rem;
+  border-radius: 8px;
+  color: var(--claw-muted);
+}
+
+.railItem:hover,
+.railItemActive {
+  color: var(--claw-accent);
+  text-decoration: none;
+  background: var(--claw-accent-soft);
+}
+
+.hero {
+  padding: 1.25rem 0 3rem;
+}
+
+.breadcrumb {
+  margin-bottom: 1.25rem;
+  color: var(--claw-muted);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.76rem;
+}
+
+.sectionMarker {
+  margin-bottom: 0.75rem;
+  color: var(--claw-accent);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.heroTitle {
+  margin: 0 0 1.5rem;
+  color: var(--claw-text);
+  font-size: clamp(2.4rem, 5vw, 4.6rem);
+  line-height: 0.96;
+  letter-spacing: -0.06em;
+}
+
+.quote {
+  margin: 0 0 1.25rem;
+  padding-left: 1.4rem;
+  border-left: 3px solid var(--claw-border-strong);
+  color: var(--claw-muted);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.92rem;
+  font-style: italic;
+}
+
+.heroLead,
+.sectionIntro {
+  max-width: 760px;
+  color: var(--claw-text);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.94rem;
+  font-weight: 700;
+  line-height: 1.85;
+  text-align: center;
+}
+
+.sectionIntro {
+  color: var(--claw-muted);
+  font-weight: 500;
+  text-align: left;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 2rem;
+}
+
+.primaryButton,
+.ghostButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.55rem;
+  padding: 0 1rem;
+  border: 1px solid var(--claw-border-strong);
+  border-radius: 10px;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.primaryButton {
+  color: #0a0503;
+  background: var(--claw-accent);
+}
+
+.ghostButton {
+  color: var(--claw-text);
+  background: var(--claw-panel);
+}
+
+.primaryButton:hover,
+.ghostButton:hover {
+  color: var(--claw-text);
+  text-decoration: none;
+  border-color: var(--claw-accent);
+  background: var(--claw-accent-soft);
+}
+
+.section {
+  padding: 3.6rem 0;
+  border-top: 1px solid var(--claw-border);
+}
+
+.sectionHeader {
+  margin-bottom: 1rem;
+}
+
+.sectionHeader span {
+  color: var(--claw-accent);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.sectionHeader h2 {
+  margin: 0.55rem 0 0;
+  color: var(--claw-text);
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+  letter-spacing: -0.045em;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.areaCard,
+.noteItem,
+.callout {
+  border: 1px solid var(--claw-border);
+  border-radius: 9px;
+  background: var(--claw-panel);
+}
+
+.areaCard {
+  display: grid;
+  min-height: 158px;
+  padding: 1.25rem;
+  color: inherit;
+}
+
+.areaCard:hover,
+.noteItem:hover {
+  color: inherit;
+  text-decoration: none;
+  border-color: var(--claw-accent);
+  background: var(--claw-panel-hover);
+}
+
+.cardIcon {
+  color: var(--claw-accent);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.areaCard h3 {
+  margin: 1.25rem 0 0.5rem;
+  color: var(--claw-text);
+  font-size: 1.15rem;
+  letter-spacing: -0.025em;
+}
+
+.areaCard p {
+  margin: 0;
+  color: var(--claw-muted);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.85rem;
+  line-height: 1.75;
+}
+
+.noteList {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.noteItem {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.95rem 1rem;
+  color: inherit;
+  font-family: var(--ifm-font-family-monospace);
+}
+
+.noteItem span,
+.noteItem small {
+  color: var(--claw-muted);
+  font-size: 0.78rem;
+}
+
+.noteItem strong {
+  color: var(--claw-text);
+  font-size: 0.95rem;
+}
+
+.callout {
+  padding: 1.25rem 1.4rem;
+  color: var(--claw-muted);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.9rem;
+  line-height: 1.85;
+}
+
+.callout p {
+  margin: 0;
+}
+
+@media screen and (max-width: 1240px) {
+  .docsShell {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  .rightRail {
+    display: none;
   }
 }
 
-.buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+@media screen and (max-width: 996px) {
+  .main,
+  .docsShell {
+    display: block;
+    padding: 1.5rem 1rem 4rem;
+  }
+
+  .leftRail {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+    margin-bottom: 2rem;
+  }
+
+  .railTitle {
+    grid-column: 1 / -1;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .noteItem {
+    grid-template-columns: 1fr;
+  }
+
+  .heroLead {
+    text-align: left;
+  }
 }

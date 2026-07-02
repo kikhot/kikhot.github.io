@@ -13,6 +13,21 @@ docusaurus:
   permalink: /docusaurus
   description: Docusaurus tag description
 
+redis:
+  label: Redis
+  permalink: /redis
+  description: Redis 学习笔记
+
+data-structure:
+  label: Data Structure
+  permalink: /data-structure
+  description: 数据结构相关笔记
+
+backend:
+  label: Backend
+  permalink: /backend
+  description: 后端技术笔记
+
 hola:
   label: Hola
   permalink: /hola

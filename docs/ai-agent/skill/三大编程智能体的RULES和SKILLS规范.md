@@ -138,10 +138,10 @@ CLAUDE.md
 | 级别      | 路径                               | 说明         |
 | ------- | -------------------------------- | ---------- |
 | 用户级     | ~/.claude/CLAUDE.md              | 全局规则       |
-| 项目级     | <project-root>/CLAUDE.md         | 项目共享       |
-| 项目级（替代） | <project-root>/.claude/CLAUDE.md | 放在 .claude |
-| 本地覆盖    | <project-root>/CLAUDE.local.md   | Git Ignore |
-| 子目录     | <subdir>/CLAUDE.md               | 子目录专属规则    |
+| 项目级     | `project-root/CLAUDE.md`         | 项目共享       |
+| 项目级（替代） | `project-root/.claude/CLAUDE.md` | 放在 .claude |
+| 本地覆盖    | `project-root/CLAUDE.local.md`   | Git Ignore |
+| 子目录     | `subdir/CLAUDE.md`               | 子目录专属规则    |
 
 ### 加载顺序
 
@@ -156,19 +156,19 @@ CLAUDE.md
 ### 用户级
 
 ```text
-~/.claude/skills/<skill-name>/SKILL.md
+`~/.claude/skills/skill-name/SKILL.md`
 ```
 
 ### 项目级
 
 ```text
-<project-root>/.claude/skills/<skill-name>/SKILL.md
+`project-root/.claude/skills/skill-name/SKILL.md`
 ```
 
 ### 插件级
 
 ```text
-<plugin>/skills/<skill-name>/SKILL.md
+`plugin/skills/skill-name/SKILL.md`
 ```
 
 ### 企业级
@@ -269,9 +269,9 @@ AGENTS.md
 | ---- | ----------------------------- |
 | 用户级  | ~/.codex/AGENTS.md            |
 | 用户覆盖 | ~/.codex/AGENTS.override.md   |
-| 项目级  | <git-root>/AGENTS.md          |
-| 项目覆盖 | <git-root>/AGENTS.override.md |
-| 子目录级 | <subdir>/AGENTS.md            |
+| 项目级  | `git-root/AGENTS.md`          |
+| 项目覆盖 | `git-root/AGENTS.override.md` |
+| 子目录级 | `subdir/AGENTS.md`            |
 
 ---
 
@@ -429,9 +429,9 @@ GEMINI.md
 | 级别   | 路径                       |
 | ---- | ------------------------ |
 | 用户级  | ~/.gemini/GEMINI.md      |
-| 项目级  | <project-root>/GEMINI.md |
+| 项目级  | `project-root/GEMINI.md` |
 | 祖先目录 | 向上搜索                     |
-| 子目录级 | <subdir>/GEMINI.md       |
+| 子目录级 | `subdir/GEMINI.md`       |
 
 ---
 
@@ -462,7 +462,7 @@ GEMINI.md
 添加全局记忆：
 
 ```bash
-/memory add <text>
+`/memory add text`
 ```
 
 ---
@@ -565,8 +565,8 @@ activate_skill
 
 ```bash
 /skills list
-/skills enable <name>
-/skills disable <name>
+`/skills enable name`
+`/skills disable name`
 /skills reload
 ```
 
@@ -575,13 +575,13 @@ activate_skill
 ### CLI 命令
 
 ```bash
-gemini skills install <path-or-url>
+`gemini skills install path-or-url`
 
-gemini skills uninstall <name>
+`gemini skills uninstall name`
 
-gemini skills enable <name> --scope user|workspace
+`gemini skills enable name --scope user|workspace`
 
-gemini skills disable <name>
+`gemini skills disable name`
 ```
 
 ---
@@ -592,9 +592,9 @@ gemini skills disable <name>
 
 | 智能体         | 文件名       | 用户级                 | 项目级                 |
 | ----------- | --------- | ------------------- | ------------------- |
-| Claude Code | CLAUDE.md | ~/.claude/CLAUDE.md | <project>/CLAUDE.md |
-| Codex CLI   | AGENTS.md | ~/.codex/AGENTS.md  | <project>/AGENTS.md |
-| Gemini CLI  | GEMINI.md | ~/.gemini/GEMINI.md | <project>/GEMINI.md |
+| Claude Code | CLAUDE.md | ~/.claude/CLAUDE.md | `project/CLAUDE.md` |
+| Codex CLI   | AGENTS.md | ~/.codex/AGENTS.md  | `project/AGENTS.md` |
+| Gemini CLI  | GEMINI.md | ~/.gemini/GEMINI.md | `project/GEMINI.md` |
 
 ---
 

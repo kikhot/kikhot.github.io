@@ -5,8 +5,8 @@ import type * as Preset from '@docusaurus/preset-classic';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'Quixote Blog',
-  tagline: 'show my blog',
+  title: 'Quixote Knowledge Base',
+  tagline: 'A technical knowledge garden for builders.',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
@@ -29,8 +29,8 @@ const config: Config = {
   // useful metadata like html lang. For example, if your site is Chinese, you
   // may want to replace "en" with "zh-Hans".
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
+    defaultLocale: 'zh-Hans',
+    locales: ['zh-Hans'],
   },
 
   presets: [
@@ -40,6 +40,7 @@ const config: Config = {
         docs: {
           // breadcrumbs: true,           // docs 上面的面包屑是否显示（默认为true）
           sidebarPath: './sidebars.ts',
+          exclude: ['tutorial-basics/**', 'tutorial-extras/**', 'intro.md'],
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
@@ -47,6 +48,7 @@ const config: Config = {
         },
         blog: {
           showReadingTime: true,
+          exclude: ['2019-*.md', '2021-*.mdx', '2021-08-26-welcome/**'],
           feedOptions: {
             type: ['rss', 'atom'],
             xslt: true,
@@ -68,7 +70,16 @@ const config: Config = {
   ],
 
   themeConfig: {
-    // Replace with your project's social card
+    metadata: [
+      {
+        name: 'keywords',
+        content: 'Quixote, knowledge base, Java, Redis, Spring, AI Agent, technical blog',
+      },
+    ],
+    colorMode: {
+      defaultMode: 'dark',
+      respectPrefersColorScheme: false,
+    },
     image: 'img/docusaurus-social-card.jpg',
     docs: {
       sidebar: {
@@ -76,27 +87,46 @@ const config: Config = {
       }
     },
     navbar: {
-      title: 'My Site',
+      title: 'Quixote',
       logo: {
-        alt: 'My Site Logo',
+        alt: 'Quixote Logo',
         src: 'img/logo.svg',
       },
       items: [
-        // {
-        //   type: 'docSidebar',
-        //   sidebarId: 'tutorialSidebar',
-        //   position: 'left',
-        //   label: 'Tutorial',
-        // },
         {
           type: 'docSidebar',
           sidebarId: 'InterviewSidebar',
           position: 'left',
-          label: '面试题',
+          label: '知识库',
         },
-        // {to: '/blog', label: 'Blog', position: 'left'},
         {
-          href: 'https://github.com/facebook/docusaurus',
+          type: 'docSidebar',
+          sidebarId: 'FrameworkSidebar',
+          label: 'Java',
+          position: 'left',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'RedisSidebar',
+          label: 'Redis',
+          position: 'left',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'MicroserviceSidebar',
+          label: '微服务',
+          position: 'left',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'AiAgentSidebar',
+          label: 'AI Agent',
+          position: 'left',
+        },
+        {to: '/blog', label: '博客', position: 'left'},
+        {to: '/about', label: '关于', position: 'left'},
+        {
+          href: 'https://github.com/kikhot/kikhot.github.io',
           label: 'GitHub',
           position: 'right',
         },
@@ -106,46 +136,46 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'Docs',
+          title: 'Knowledge',
           items: [
             {
-              label: 'Tutorial',
-              to: '/docs/intro',
+              label: '知识库',
+              to: '/docs/category/面试题',
+            },
+            {
+              label: 'Redis',
+              to: '/docs/category/redis篇',
+            },
+            {
+              label: 'Spring',
+              to: '/docs/category/框架篇',
             },
           ],
         },
         {
-          title: 'Community',
+          title: 'Explore',
           items: [
             {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-            },
-            {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
-            },
-            {
-              label: 'X',
-              href: 'https://x.com/docusaurus',
-            },
-          ],
-        },
-        {
-          title: 'More',
-          items: [
-            {
-              label: 'Blog',
+              label: '博客',
               to: '/blog',
             },
             {
+              label: '关于',
+              to: '/about',
+            },
+          ],
+        },
+        {
+          title: 'Links',
+          items: [
+            {
               label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
+              href: 'https://github.com/kikhot/kikhot.github.io',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Quixote. Built for lifelong technical notes.`,
     },
     prism: {
       theme: prismThemes.github,
